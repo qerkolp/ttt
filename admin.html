@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">ADMIN<span>PANEL</span></div>
+        <div class="nav-links"><a href="index.html">Zpět na web</a></div>
+    </nav>
+    <div class="container">
+        <h1>SPRÁVA UŽIVATELŮ</h1>
+        <p>Zde můžeš měnit groupky registrovaným uživatelům.</p>
+
+        <table id="user-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Jméno</th>
+                    <th>Současná Role</th>
+                    <th>Nová Role</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 1. Kontrola oprávnění (Client Side)
+        const user = JSON.parse(localStorage.getItem('user'));
+        const allowed = ['founder', 'co-founder', 'head manager', 'manager', 'head dev', 'developer'];
+        const pass = localStorage.getItem('pass_temp'); // Heslo uložené při loginu pro ověření
+
+        if (!user || !allowed.includes(user.role)) {
+            alert('Sem nemáš přístup!');
+            window.location.href = 'index.html';
+        }
+
+        const rolesList = [
+            'founder', 'co-founder', 'head manager', 'manager', 'head dev', 'developer',
+            'head admin', 'director', 'admin', 'trial admin', 'user'
+        ];
+
+        async function loadUsers() {
+            const res = await fetch('/.netlify/functions/admin-get-users');
+            const users = await res.json();
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                // Vygenerujeme dropdown s rolemi
+                let options = '';
+                rolesList.forEach(r => {
+                    const selected = (r === u.role) ? 'selected' : '';
+                    options += `<option value="${r}" ${selected}>${r.toUpperCase()}</option>`;
+                });
+
+                const row = `
+                    <tr>
+                        <td>#${u.id}</td>
+                        <td>${u.username}</td>
+                        <td style="color:var(--primary)">${u.role.toUpperCase()}</td>
+                        <td>
+                            <select id="role-select-${u.username}">
+                                ${options}
+                            </select>
+                        </td>
+                        <td>
+                            <button onclick="saveRole('${u.username}')" style="padding:5px 10px; width:auto; font-size:0.8rem;">ULOŽIT</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        async function saveRole(targetUsername) {
+            const newRole = document.getElementById(`role-select-${targetUsername}`).value;
+
+            if (!confirm(`Opravdu změnit roli uživateli ${targetUsername} na ${newRole}?`)) return;
+
+            // Posíláme tvé údaje backendu, aby ověřil, že jsi Admin
+            const payload = {
+                adminUsername: user.username,
+                adminPassword: pass,
+                targetUsername: targetUsername,
+                newRole: newRole
+            };
+
+            const res = await fetch('/.netlify/functions/admin-update-role', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                alert('✅ ' + result.message);
+                loadUsers(); // Refresh tabulky
+            } else {
+                alert('❌ Chyba: ' + result.error);
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+
+</html>

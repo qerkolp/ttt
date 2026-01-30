@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head><meta charset="UTF-8"><title>Login</title><link rel="stylesheet" href="style.css"></head>
+<body>
+    <nav><div class="logo">BEST<span>RP</span></div><a href="index.html" style="color:white; margin:20px;">Zpět</a></nav>
+    <div class="container" style="max-width: 400px;">
+        <h1>PŘIHLÁŠENÍ</h1>
+        <input type="text" id="user" placeholder="Jméno">
+        <input type="password" id="pass" placeholder="Heslo">
+        <button onclick="login()">PŘIHLÁSIT SE</button>
+        <p id="msg"></p>
+        <a href="register.html" style="font-size:0.8rem; color:#aaa;">Ještě nemáš účet? Registruj se</a>
+    </div>
+    <script>
+        async function login() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const res = await fetch('/.netlify/functions/login', { method:'POST', body: JSON.stringify({username:u, password:p}) });
+            const data = await res.json();
+            if(res.ok) {
+                // Uložíme uživatele a DOČASNĚ i heslo (pro admin akce)
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('pass_temp', p); 
+                
+                document.getElementById('msg').innerHTML = `<span style="color:#00ff41">Vítej! Přesměrovávám...</span>`;
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            } else {
+                document.getElementById('msg').innerText = data.error;
+            }
+        }
+    </script>
+</body>
+</html>

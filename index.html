@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BestRP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BEST<span>RP</span></div>
+        <div class="nav-links">
+            <a href="index.html">Domů</a>
+            <a href="team.html">A-Team</a>
+            <a href="apply.html">Whitelist</a>
+            <a href="admin.html" id="admin-link" class="hidden" style="color: #ff5555;">USER EDITOR</a>
+            <a href="login.html" class="btn-nav" id="login-btn">Přihlásit</a>
+        </div>
+    </nav>
+    <div class="container" style="margin-top: 100px;">
+        <h1>VÍTEJ NA SERVERU</h1>
+        <p>Pro správu účtu se přihlaš.</p>
+    </div>
+    <script>
+        // Skript pro zobrazení tlačítka Admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        const allowedRoles = ['founder', 'co-founder', 'head manager', 'manager', 'head dev', 'developer'];
+
+        if (user) {
+            document.getElementById('login-btn').innerText = user.username;
+            document.getElementById('login-btn').href = "#";
+            if (allowedRoles.includes(user.role)) {
+                document.getElementById('admin-link').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>

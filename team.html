@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <title>A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BEST<span>RP</span></div>
+        <div class="nav-links">
+            <a href="index.html">Domů</a>
+            <a href="team.html">A-Team</a>
+            <a href="admin.html" id="admin-link" class="hidden" style="color: #ff5555;">USER EDITOR</a>
+            <a href="login.html" class="btn-nav">Přihlásit</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>NAŠE VEDENÍ</h1>
+        <div class="team-grid" id="team-container">Načítám...</div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const allowed = ['founder', 'co-founder', 'head manager', 'manager', 'head dev', 'developer'];
+        if (user && allowed.includes(user.role)) document.getElementById('admin-link').classList.remove('hidden');
+
+        // Config Rolí
+        const rolesConfig = {
+            'founder': { label: 'FOUNDER', color: '#ed4245', weight: 100 },
+            'co-founder': { label: 'CO-FOUNDER', color: '#ed4245', weight: 90 },
+            'head manager': { label: 'HEAD MANAGER', color: '#1abc9c', weight: 80 },
+            'manager': { label: 'MANAGER', color: '#1abc9c', weight: 70 },
+            'head dev': { label: 'HEAD DEV', color: '#f1c40f', weight: 60 },
+            'developer': { label: 'DEVELOPER', color: '#c27c0e', weight: 50 },
+            'head admin': { label: 'HEAD ADMIN', color: '#3498db', weight: 40 },
+            'director': { label: 'DIRECTOR', color: '#95a5a6', weight: 30 },
+            'admin': { label: 'ADMIN', color: '#3498db', weight: 20 },
+            'trial admin': { label: 'TRIAL ADMIN', color: '#607d8b', weight: 10 }
+        };
+
+        async function load() {
+            const container = document.getElementById('team-container');
+            const res = await fetch('/.netlify/functions/get-team');
+            const users = await res.json();
+            users.sort((a, b) => (rolesConfig[b.role]?.weight || 0) - (rolesConfig[a.role]?.weight || 0));
+            container.innerHTML = '';
+            users.forEach(u => {
+                const conf = rolesConfig[u.role] || { label: u.role, color: '#555' };
+                container.innerHTML += `
+                <div class="card" style="border-color: ${conf.color}">
+                    <div class="avatar"><img src="${u.avatar_url}" style="border: 2px solid ${conf.color}"></div>
+                    <span class="role" style="color:${conf.color}; border:1px solid ${conf.color}; background:rgba(0,0,0,0.3)">${conf.label}</span>
+                    <h3>${u.username}</h3>
+                </div>`;
+            });
+        }
+        load();
+    </script>
+</body>
+
+</html>

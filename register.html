@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registrace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BEST<span>RP</span></div><a href="index.html" style="color:white; margin:20px;">Zpět</a>
+    </nav>
+    <div class="container" style="max-width: 400px;">
+        <h1>REGISTRACE</h1>
+        <input type="text" id="user" placeholder="Jméno">
+        <input type="password" id="pass" placeholder="Heslo">
+        <button onclick="reg()">VYTVOŘIT ÚČET</button>
+        <p id="msg"></p>
+        <a href="login.html" style="font-size:0.8rem; color:#aaa;">Už máš účet? Přihlášení</a>
+    </div>
+    <script>
+        async function reg() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const res = await fetch('/.netlify/functions/register', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+            if (res.ok) {
+                document.getElementById('msg').innerHTML = '<span style="color:#00ff41">Hotovo! Můžeš se přihlásit.</span>';
+            } else {
+                document.getElementById('msg').innerText = "Chyba. Jméno už asi existuje.";
+            }
+        }
+    </script>
+</body>
+
+</html>

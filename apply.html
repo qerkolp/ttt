@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestRP - Whitelist</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BEST<span>RP</span></div>
+        <div class="nav-links">
+            <a href="index.html">Domů</a>
+            <a href="team.html">A-Team</a>
+            <a href="rules.html">Pravidla</a>
+            <a href="apply.html" class="active btn-nav">Whitelist</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>ŽÁDOST O WHITELIST</h1>
+        <p style="text-align: center; color: #aaa; margin-bottom: 30px;">Data se ukládají přímo do SQL databáze.</p>
+
+        <div class="form-container">
+            <form id="db-form">
+                <label>Discord Tag</label>
+                <input type="text" id="discord" placeholder="pepa#1234" required>
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="width: 50%;">
+                        <label>Věk (OOC)</label>
+                        <input type="number" id="age_ooc" required>
+                    </div>
+                    <div style="width: 50%;">
+                        <label>Věk (IC)</label>
+                        <input type="number" id="age_ic" required>
+                    </div>
+                </div>
+
+                <label>Jméno Postavy</label>
+                <input type="text" id="char_name" placeholder="Jméno Příjmení" required>
+
+                <label>Zkušenosti</label>
+                <select id="experience">
+                    <option value="zacatecnik">Začátečník (0-50h)</option>
+                    <option value="pokrocily">Pokročilý (50-500h)</option>
+                    <option value="expert">Expert (500h+)</option>
+                </select>
+
+                <label>Příběh Postavy (Lore)</label>
+                <textarea id="backstory" style="min-height: 150px;" required></textarea>
+
+                <button type="submit" class="btn-submit" id="btn-submit">ODESLAT ŽÁDOST</button>
+            </form>
+
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('db-form');
+        const statusDiv = document.getElementById('status');
+        const btn = document.getElementById('btn-submit');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Zastaví reload stránky
+
+            // UI Efekty
+            btn.disabled = true;
+            btn.innerText = "ODESÍLÁM...";
+            statusDiv.style.display = 'none';
+
+            // Sbírání dat
+            const data = {
+                discord: document.getElementById('discord').value,
+                age_ooc: document.getElementById('age_ooc').value,
+                age_ic: document.getElementById('age_ic').value,
+                char_name: document.getElementById('char_name').value,
+                experience: document.getElementById('experience').value,
+                backstory: document.getElementById('backstory').value
+            };
+
+            try {
+                // Odeslání na náš backend
+                const response = await fetch('/.netlify/functions/submit', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusDiv.className = 'success';
+                    statusDiv.innerHTML = "✅ " + result.message;
+                    form.reset(); // Vyčistí formulář
+                } else {
+                    statusDiv.className = 'error';
+                    statusDiv.innerText = "❌ Chyba: " + (result.error || "Neznámá chyba");
+                }
+            } catch (err) {
+                statusDiv.className = 'error';
+                statusDiv.innerText = "❌ Chyba připojení k serveru.";
+                console.error(err);
+            }
+
+            statusDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = "ODESLAT ŽÁDOST";
+        });
+    </script>
+</body>
+
+</html>
