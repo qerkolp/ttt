@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>A-Team</title>
+    <title>DEV-Team</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,38 +12,31 @@
         <div class="logo">BEST<span>RP</span></div>
         <div class="nav-links">
             <a href="index.html">Domů</a>
-            <a href="team.html" class="active">A-Team</a>
-            <a href="devs.html">DEV-Team</a> <a href="apply.html">Whitelist</a>
+            <a href="team.html">A-Team</a>
+            <a href="devs.html" class="active">DEV-Team</a>
+            <a href="apply.html">Whitelist</a>
             <a href="login.html" class="btn-nav" id="nav-btn">Přihlásit</a>
         </div>
     </nav>
 
     <div class="container">
-        <h1>A-TEAM</h1>
-        <p>Vedení serveru a administrátoři.</p>
+        <h1>DEVELOPMENT TÝM</h1>
+        <p>Ti, co tvoří a opravují server.</p>
         <div class="team-grid" id="team-container">Načítám...</div>
     </div>
 
     <script>
-        // Logika pro tlačítko Účet/Přihlásit
         const currentUser = JSON.parse(localStorage.getItem('user'));
         const navBtn = document.getElementById('nav-btn');
         if (currentUser) {
             navBtn.innerText = "Můj Účet";
             navBtn.href = "account.html";
-            navBtn.style.background = "#ff5555"; // Červená pro účet
+            navBtn.style.background = "#ff5555";
         }
 
-        // Config Rolí (BEZ DEVŮ)
-        const rolesConfig = {
-            'founder': { label: 'FOUNDER', color: '#ed4245', weight: 100 },
-            'co-founder': { label: 'CO-FOUNDER', color: '#ed4245', weight: 90 },
-            'head manager': { label: 'HEAD MANAGER', color: '#1abc9c', weight: 80 },
-            'manager': { label: 'MANAGER', color: '#1abc9c', weight: 70 },
-            'head admin': { label: 'HEAD ADMIN', color: '#3498db', weight: 40 },
-            'director': { label: 'DIRECTOR', color: '#95a5a6', weight: 30 },
-            'admin': { label: 'ADMIN', color: '#3498db', weight: 20 },
-            'trial admin': { label: 'TRIAL ADMIN', color: '#607d8b', weight: 10 }
+        const devConfig = {
+            'head dev': { label: 'HEAD DEV', color: '#f1c40f', weight: 60 },
+            'developer': { label: 'DEVELOPER', color: '#c27c0e', weight: 50 }
         };
 
         async function load() {
@@ -51,19 +44,22 @@
             const res = await fetch('/.netlify/functions/get-team');
             const users = await res.json();
 
-            // Filtrujeme: Chceme jen lidi, co jsou v rolesConfig (tedy NE devy)
-            const aTeam = users.filter(u => rolesConfig[u.role]);
+            // Filtrujeme: Chceme JEN devy
+            const devs = users.filter(u => devConfig[u.role]);
 
-            aTeam.sort((a, b) => (rolesConfig[b.role]?.weight || 0) - (rolesConfig[a.role]?.weight || 0));
+            devs.sort((a, b) => (devConfig[b.role]?.weight || 0) - (devConfig[a.role]?.weight || 0));
             container.innerHTML = '';
-            aTeam.forEach(u => {
-                const conf = rolesConfig[u.role];
+
+            if (devs.length === 0) container.innerHTML = '<p>Žádní vývojáři nenalezeni.</p>';
+
+            devs.forEach(u => {
+                const conf = devConfig[u.role];
                 container.innerHTML += `
                 <div class="card" style="border-color: ${conf.color}">
                     <div class="avatar"><img src="${u.avatar_url}" style="border: 2px solid ${conf.color}"></div>
                     <span class="role" style="color:${conf.color}; border:1px solid ${conf.color}; background:rgba(0,0,0,0.3)">${conf.label}</span>
                     <h3>${u.username}</h3>
-                    <p style="font-size:0.8rem; color:#aaa; margin-top:5px;">${u.bio || ''}</p>
+                    <p style="font-size:0.8rem; color:#aaa; margin-top:5px;">${u.bio || 'Vývojář'}</p>
                 </div>`;
             });
         }

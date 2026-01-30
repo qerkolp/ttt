@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Můj Účet</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">BEST<span>RP</span></div>
+        <div class="nav-links">
+            <a href="index.html">Domů</a>
+            <a href="team.html">A-Team</a>
+            <a href="devs.html">DEV-Team</a>
+            <a href="login.html" class="btn-nav" id="logout-btn">Odhlásit</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>NASTAVENÍ ÚČTU</h1>
+
+        <div class="form-container" style="text-align: left; max-width: 500px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="preview-avatar" src=""
+                    style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover;">
+                <h2 id="display-name" style="margin: 10px 0;">...</h2>
+                <span id="display-role" class="role" style="border: 1px solid white;">...</span>
+            </div>
+
+            <label>Odkaz na Avatar (Obrázek)</label>
+            <input type="text" id="avatar_input" placeholder="https://...">
+
+            <label>Bio (Něco o tobě)</label>
+            <textarea id="bio_input"
+                style="width: 100%; height: 100px; background: #1e1e2f; color: white; border: 1px solid #333; border-radius: 5px; padding: 10px;"
+                placeholder="Jsem nejlepší RP hráč..."></textarea>
+
+            <label style="margin-top: 20px; color: #ff5555;">Potvrzení heslem (Nutné pro uložení)</label>
+            <input type="password" id="password_verify" placeholder="Zadej své heslo">
+
+            <button onclick="saveProfile()" class="btn-submit">ULOŽIT ZMĚNY</button>
+            <p id="status"></p>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+
+            <a href="admin.html" id="admin-btn" class="hidden"
+                style="display: none; background: #ff5555; text-align: center; padding: 15px; text-decoration: none; color: white; font-weight: bold; border-radius: 5px;">VSTOUPIT
+                DO ADMIN PANELU</a>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        // 1. Kontrola přihlášení
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+
+        // 2. Naplnění dat
+        document.getElementById('display-name').innerText = user.username;
+        document.getElementById('display-role').innerText = user.role.toUpperCase();
+        document.getElementById('preview-avatar').src = user.avatar_url;
+        document.getElementById('avatar_input').value = user.avatar_url;
+        document.getElementById('bio_input').value = user.bio || "";
+
+        // Odhlášení
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            localStorage.removeItem('pass_temp');
+            window.location.href = 'index.html';
+        });
+
+        // Zobrazení admin tlačítka
+        const allowed = ['founder', 'co-founder', 'head manager', 'manager', 'head dev', 'developer'];
+        if (allowed.includes(user.role)) {
+            document.getElementById('admin-btn').style.display = 'block';
+        }
+
+        // 3. Uložení změn
+        async function saveProfile() {
+            const btn = document.querySelector('button');
+            const status = document.getElementById('status');
+            btn.disabled = true;
+            btn.innerText = "UKLÁDÁM...";
+
+            const payload = {
+                username: user.username,
+                password: document.getElementById('password_verify').value,
+                newAvatar: document.getElementById('avatar_input').value,
+                newBio: document.getElementById('bio_input').value
+            };
+
+            const res = await fetch('/.netlify/functions/update-profile', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                status.style.color = "#00ff41";
+                status.innerText = "✅ Úspěšně uloženo!";
+                // Aktualizujeme localStorage
+                localStorage.setItem('user', JSON.stringify(result.user));
+                // Update náhledu
+                document.getElementById('preview-avatar').src = result.user.avatar_url;
+            } else {
+                status.style.color = "#ff5555";
+                status.innerText = "❌ " + result.error;
+            }
+            btn.disabled = false;
+            btn.innerText = "ULOŽIT ZMĚNY";
+        }
+    </script>
+</body>
+
+</html>
